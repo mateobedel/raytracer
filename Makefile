@@ -1,29 +1,18 @@
-# Flags
-CXXFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -O2 -std=c++17
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
+INCLUDES = -Ilib/imgui
 
-# Fichiers sources
+# Fichier sources
 SRCS = $(wildcard src/*.cpp)
 
-# Fichiers objets
-OBJS = $(SRCS:src/%.cpp=obj/%.o)
-
-# Règle par défaut
 all: bin/raytracer
 
-# Création de l'exécutable
-bin/raytracer: $(OBJS)
+bin/raytracer: $(SRCS)
 	@mkdir -p bin
-	g++ $(OBJS) -o $@
+	g++ $(CFLAGS) $(INCLUDES) $(SRCS) -o $@ $(LDFLAGS)
 
-# Compilation des obj
-obj/%.o: src/%.cpp
-	@mkdir -p obj
-	g++ $(CXXFLAGS) -c $< -o $@
-
-# Nettoyage
 clean:
-	rm -rf obj bin
-
+	find bin -type f -delete
 
 run: all
 	bin/raytracer
