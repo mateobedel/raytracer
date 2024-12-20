@@ -1,18 +1,35 @@
-CFLAGS = -Wall -Wextra -O2 -std=c++17
+# Définition des outils et des options
+CXX = g++
+CFLAGS = -O2 -std=c++17
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
-INCLUDES = -Ilib/imgui
+INCLUDES = -Ilib/imgui -Ilib/Walnut
 
-# Fichier sources
-SRCS = $(wildcard src/*.cpp)
+# Répertoires
+OBJ_DIR = obj
+TARGET_DIR = bin
+TARGET = $(TARGET_DIR)/raytracer
 
-all: bin/raytracer
+# Fichiers sources et objets
+SRCS = $(shell find src lib -type f -name '*.cpp')
+OBJS = $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
 
-bin/raytracer: $(SRCS)
-	@mkdir -p bin
-	g++ $(CFLAGS) $(INCLUDES) $(SRCS) -o $@ $(LDFLAGS)
+# Règles
+all: $(TARGET)
 
+# Compilation des fichiers objets dans obj/
+$(OBJ_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Construction de l'exécutable
+$(TARGET): $(OBJS)
+	@mkdir -p $(TARGET_DIR)
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+
+# Nettoyage
 clean:
-	find bin -type f -delete
+	@rm -rf $(OBJ_DIR) $(TARGET_DIR)
 
-run: all
-	bin/raytracer
+# Exécution
+run: $(TARGET)
+	$(TARGET)
