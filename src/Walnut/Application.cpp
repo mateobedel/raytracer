@@ -759,6 +759,7 @@ namespace Walnut {
 	}
 
 	bool isRunning() {
+
 		return g_ApplicationRunning;
 	}
 
