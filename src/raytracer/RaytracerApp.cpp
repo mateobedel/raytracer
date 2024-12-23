@@ -1,7 +1,9 @@
-#include "Application.h"
-#include "Image.h"
-#include "Random.h"
-#include "Timer.h"
+#include "Walnut/Application.h"
+#include "Walnut/Image.h"
+#include "Walnut/Random.h"
+#include "Walnut/Timer.h"
+
+#include "raytracer/Renderer.h"
 
 using namespace Walnut;
 
@@ -22,8 +24,10 @@ public:
 		m_ViewportWidth = ImGui::GetContentRegionAvail().x;
 		m_ViewportHeight = ImGui::GetContentRegionAvail().y;
 
-		if (m_Image)
-			ImGui::Image((ImTextureID)m_Image->GetDescriptorSet(), {(float)m_Image->GetWidth(), (float)m_Image->GetHeight()});
+		auto image = m_Renderer.GetFinalImage();
+
+		if (image)
+			ImGui::Image((ImTextureID)image->GetDescriptorSet(), {(float)image->GetWidth(), (float)image->GetHeight()}, ImVec2(0,1), ImVec2(1,0));
 
 		ImGui::End();
 		ImGui::PopStyleVar();
@@ -35,25 +39,17 @@ public:
 
 		Timer timer;
 
-		if (!m_Image || m_ViewportWidth!= m_Image->GetWidth() || m_ViewportHeight != m_Image->GetHeight()) {
+		//resize
+		m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
+		m_Renderer.Render();
 
-			m_Image = std::make_shared<Image>(m_ViewportWidth, m_ViewportHeight, ImageFormat::RGBA);
-			delete[] m_ImageData;
-			m_ImageData = new uint32_t[m_ViewportWidth * m_ViewportHeight];
-		}
-
-		for(uint32_t i = 0; i < m_ViewportHeight*m_ViewportWidth; i++) 
-			m_ImageData[i] = Random::UInt() | 0xff000000;
-
-		m_Image->SetData(m_ImageData);
 
 		m_LastRenderTime = timer.ElapsedMillis();
 	}
 
 private:
-	std::shared_ptr<Image> m_Image;
-	u_int32_t* m_ImageData = nullptr;
-	uint32_t m_ViewportHeight, m_ViewportWidth;
+	Renderer m_Renderer;
+	uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 
 	float m_LastRenderTime = .0f;
 };
@@ -79,14 +75,3 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv) {
 	return app;
 }
 
-
-int main(int argc, char** argv) {
-
-	while (Walnut::isRunning()) {
-
-		Walnut::Application* app = Walnut::CreateApplication(argc, argv);
-		app->Run();
-		delete app;
-	}
-	return 0;
-}

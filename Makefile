@@ -2,7 +2,7 @@
 CXX = g++
 CFLAGS = -O2 -std=c++17 -D_DEBUG
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
-INCLUDES = -Ilib/imgui -Ilib/Walnut -Ilib/stb_image
+INCLUDES = -Ilib -Ilib/imgui
 
 # Répertoires
 OBJ_DIR = obj
