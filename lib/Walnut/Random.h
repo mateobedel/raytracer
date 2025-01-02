@@ -26,7 +26,8 @@ namespace Walnut {
 
 		static float Float()
 		{
-			return (float)s_Distribution(s_RandomEngine) / (float)std::numeric_limits<uint32_t>::max();
+			
+			return s_RealDistribution(s_RandomEngine);
 		}
 
 		static glm::vec3 Vec3()
@@ -46,6 +47,7 @@ namespace Walnut {
 	private:
 		static std::mt19937 s_RandomEngine;
 		static std::uniform_int_distribution<std::mt19937::result_type> s_Distribution;
+		static std::uniform_real_distribution<float> s_RealDistribution;
 	};
 
 }

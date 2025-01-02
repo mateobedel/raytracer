@@ -1,7 +1,7 @@
-# Définition des outils et des options
+# Définition des outils et des options (tbb for multithreading)
 CXX = g++
 CFLAGS = -O2 -std=c++17 -D_DEBUG
-LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
+LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi -ltbb
 INCLUDES = -Ilib -Ilib/imgui
 
 # Répertoires

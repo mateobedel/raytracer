@@ -9,11 +9,9 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
+#include "font/forkawesome.h"
 
 #include <iostream>
-
-// Embedded font
-#include "Roboto-Regular.embed"
 
 bool g_ApplicationRunning = true;
 
@@ -476,8 +474,16 @@ namespace Walnut {
 		// Load default font
 		ImFontConfig fontConfig;
 		fontConfig.FontDataOwnedByAtlas = false;
-		ImFont* robotoFont = io.Fonts->AddFontFromMemoryTTF((void*)g_RobotoRegular, sizeof(g_RobotoRegular), 20.0f, &fontConfig);
+		ImFont* robotoFont = io.Fonts->AddFontFromFileTTF("lib/font/PlusJakartaSans-Regular.ttf", 20.0f, &fontConfig, io.Fonts->GetGlyphRangesDefault());
 		io.FontDefault = robotoFont;
+
+		//Icons
+		fontConfig.MergeMode = true;
+		fontConfig.GlyphMinAdvanceX = 20.0f;
+		static const ImWchar icon_ranges[] = {ICON_MIN_FK, ICON_MAX_FK, 0};
+		io.Fonts->AddFontFromFileTTF("lib/font/forkawesome-webfont.ttf", 20.0f, &fontConfig, icon_ranges);
+
+		io.Fonts->Build();
 
 		// Upload Fonts
 		{
