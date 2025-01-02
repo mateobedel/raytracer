@@ -53,7 +53,7 @@ public:
 		ImGui::Begin(ICON_FK_COG "Settings");
 
 			ImGui::Text("Last Render %.3fms (%d FPS)", m_LastRenderTime, (1000/(1+(int)m_LastRenderTime)));
-			
+
 			if (ImGui::Button("Render")) Render();
 			ImGui::SameLine();
 			if (ImGui::Button("Reset")) m_Renderer.ResetFrameIndex();
@@ -174,8 +174,10 @@ private:
 			if (ImGui::TreeNode(matName.c_str())) {
 
 				edited |= ImGui::ColorEdit3(ICON_FK_TINT " Albedo", glm::value_ptr(material.Albedo));
-				edited |= ImGui::SliderFloat(ICON_FK_SUN " Roughness", &material.Roughness, .0f, 1.0f);
+				edited |= ImGui::SliderFloat(ICON_FK_CERTIFICATE " Roughness", &material.Roughness, .0f, 1.0f);
 				edited |= ImGui::SliderFloat(ICON_FK_SQUARE " Metallic", &material.Metallic, .0f, 1.0f);
+				edited |= ImGui::ColorEdit3(ICON_FK_TINT " Emission Color", glm::value_ptr(material.EmissionColor));
+				edited |= ImGui::DragFloat(ICON_FK_LIGHTBULB_O "Emission Power", &material.EmmissionPower, .05f, 0.0f, FLT_MAX);
 				ImGui::TreePop();
 			}
 			ImGui::PopID();

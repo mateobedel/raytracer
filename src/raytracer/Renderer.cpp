@@ -1,7 +1,6 @@
 #include "raytracer/Renderer.h"
 #include "Walnut/Random.h"
 
-
 #include <execution>
 #include <cstring>
 #include <algorithm>
@@ -16,7 +15,25 @@ namespace Utils {
         uint8_t a = (uint8_t)(color.a * 255.0f);
 
         return (a << 24) | (b << 16) | (g << 8) | r;
+    }
 
+    static uint32_t PCG_Hash(uint32_t input) {
+        uint32_t state = input  * 747796405u + 2891336453u;
+        uint32_t word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+        return (word >> 22u) ^ word;
+    }
+
+    static float RandomFastFloat(uint32_t& seed) {
+        seed = PCG_Hash(seed);
+        return seed/(float)UINT32_MAX;
+    }
+
+    static glm::vec3 InUnitSphere(uint32_t& seed) {
+        return glm::normalize(glm::vec3(
+            RandomFastFloat(seed)*2.0f -1.0f,
+            RandomFastFloat(seed)*2.0f -1.0f,
+            RandomFastFloat(seed)*2.0f -1.0f)
+        );
     }
 }
 
@@ -121,45 +138,48 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
     ray.Origin = m_ActiveCamera->GetPosition();
     ray.Direction = m_ActiveCamera->GetRayDirections()[x + y*m_FinalImage->GetWidth()];
 
-    glm::vec3 color(.0f);
-    float multiplier = 1.0f;
+    glm::vec3 light(.0f);
+    glm::vec3 contribution(1.0f);
+
+    uint32_t seed = x + y*m_FinalImage->GetWidth();
+    seed *= m_FrameIndex;
 
     int bounces = 5;
 
     for(int i = 0; i < bounces; i++) {
+
+        seed += i;
 
         Renderer::HitPayLoad payload = TraceRay(ray);
         
         if (payload.HitDistance < 0.0f) {
 
             glm::vec3 skyColor = glm::vec3(.6f, .7f, .9f);
-            color += skyColor * multiplier;
+            light += skyColor * contribution;
             break;
         }
         
-        glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
-        float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir),0.0f);
+        // glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
+        // float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir),0.0f);
 
         const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
         const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];
 
+
+        contribution*= material.Albedo;
+        light += material.GetEmission();
+
+        //glm::vec3 RoughnessVector = material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f);
         
+        //TODO : specular
 
-        glm::vec3 sphereColor = material.Albedo;
-        sphereColor*=lightIntensity;
-        color += sphereColor*multiplier;
-
-        multiplier *= .5f;
-
-        glm::vec3 RoughnessVector = material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f);
-        
         ray.Origin = payload.WorldPosition + payload.WorldNormal * .0001f;
-        ray.Direction = glm::reflect(ray.Direction, payload.WorldNormal + RoughnessVector);
+        //ray.Direction = glm::reflect(ray.Direction, payload.WorldNormal + RoughnessVector);
+
+        ray.Direction = glm::normalize(payload.WorldNormal + Utils::InUnitSphere(seed));
     }
 
-
-    
-    return glm::vec4(color, 1.0f);
+    return glm::vec4(light, 1.0f);
 }
  
 
