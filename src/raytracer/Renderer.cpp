@@ -103,25 +103,16 @@ Renderer::HitPayLoad Renderer::TraceRay(const Ray& ray) {
     int closestSphere = -1;
     float hitDistance = std::numeric_limits<float>::max();
 
-    for(size_t i = 0; i < m_ActiveScene->Spheres.size(); i++) {
+    for(size_t i = 0; i < m_ActiveScene->Shapes.size(); i++) {
 
-        const Sphere& sphere = m_ActiveScene->Spheres[i];
-        glm::vec3 origin = ray.Origin - sphere.Position;
+        std::shared_ptr<Shape> shape = m_ActiveScene->Shapes[i];
 
-        float a = glm::dot(ray.Direction,ray.Direction);
-        float b = 2.0f * glm::dot(origin, ray.Direction);
-        float c = glm::dot(origin, origin) - sphere.Radius*sphere.Radius;
+        float intersectionPoint = shape->intersect(ray);
+        if (intersectionPoint == __FLT_MIN__) continue;
 
-        float delta = b*b - 4.0f * a * c;
-
-        if (delta < 0.0f)
-            continue;
-
-        float closestT = (-b - glm::sqrt(delta)) / (2.0f * a); //Smaller solution
-
-        if (closestT > 0.0f && closestT < hitDistance) {
+        if (intersectionPoint > 0.0f && intersectionPoint < hitDistance) {
             closestSphere = (int)i;
-            hitDistance = closestT;
+            hitDistance = intersectionPoint;
         }
     }
 
@@ -134,6 +125,7 @@ Renderer::HitPayLoad Renderer::TraceRay(const Ray& ray) {
 
 
 glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
+    
     Ray ray; 
     ray.Origin = m_ActiveCamera->GetPosition();
     ray.Direction = m_ActiveCamera->GetRayDirections()[x + y*m_FinalImage->GetWidth()];
@@ -162,12 +154,11 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
         // glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
         // float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir),0.0f);
 
-        const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
-        const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];
+        std::shared_ptr<Shape> shape = m_ActiveScene->Shapes[payload.ShapeIndex];
+        std::shared_ptr<Material> material = m_ActiveScene->Materials[shape->MaterialIndex];
 
-
-        contribution*= material.Albedo;
-        light += material.GetEmission();
+        contribution*= material->Albedo;
+        light += material->GetEmission();
 
         //glm::vec3 RoughnessVector = material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f);
         
@@ -183,18 +174,18 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
 }
  
 
-Renderer::HitPayLoad Renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex) {
+Renderer::HitPayLoad Renderer::ClosestHit(const Ray& ray, float hitDistance, int shapeIndex) {
 
     Renderer::HitPayLoad payload;
     payload.HitDistance = hitDistance;
-    payload.ObjectIndex = objectIndex;
+    payload.ShapeIndex = shapeIndex;
 
-    const Sphere& closestSphere = m_ActiveScene->Spheres[objectIndex];
+    auto closestShape = m_ActiveScene->Shapes[shapeIndex];
 
-    glm::vec3 origin = ray.Origin - closestSphere.Position;
+    glm::vec3 origin = ray.Origin - closestShape->Position;
     payload.WorldPosition = origin + ray.Direction * hitDistance;
     payload.WorldNormal = glm::normalize(payload.WorldPosition);
-    payload.WorldPosition += closestSphere.Position;
+    payload.WorldPosition += closestShape->Position;
 
     return payload;
 
