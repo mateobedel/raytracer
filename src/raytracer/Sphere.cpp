@@ -36,9 +36,9 @@ bool Sphere::RenderUiSettings(int index, Scene& scene) {
         edited |= ImGui::DragFloat3(ICON_FK_ARROWS " Position", glm::value_ptr(Position), .01f);
 	    edited |= ImGui::DragFloat(ICON_FK_EXPAND " Radius", &Radius, .01f);
 
-        std::shared_ptr<Material> mat = scene.Materials[MaterialIndex];
+        const Material& mat = scene.Materials[MaterialIndex];
 
-        ImGui::ColorButton("##xx",ImVec4(mat->Albedo.r, mat->Albedo.g, mat->Albedo.b, 1.0f),ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoPicker,ImVec2(20, 20));
+        ImGui::ColorButton("##xx",ImVec4(mat.Albedo.r, mat.Albedo.g, mat.Albedo.b, 1.0f),ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoPicker,ImVec2(20, 20));
         ImGui::SameLine(); 
 
         std::vector<const char*> materialNames;

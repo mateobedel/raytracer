@@ -72,6 +72,8 @@ void Renderer::Render(const Scene& scene, const Camera& camera) {
         memset(m_AccumulationData, 0, m_FinalImage->GetWidth() * m_FinalImage->GetHeight() * sizeof(glm::vec4));
 
 
+
+
     std::for_each(std::execution::par, m_ImageVerticalIterator.begin(), m_ImageVerticalIterator.end(), [this](uint32_t y) {
         std::for_each(std::execution::par, m_ImageHorizontalIterator.begin(), m_ImageHorizontalIterator.end(), [this, y](uint32_t x) {
 
@@ -105,7 +107,7 @@ Renderer::HitPayLoad Renderer::TraceRay(const Ray& ray) {
 
     for(size_t i = 0; i < m_ActiveScene->Shapes.size(); i++) {
 
-        std::shared_ptr<Shape> shape = m_ActiveScene->Shapes[i];
+        Shape* shape = m_ActiveScene->Shapes[i];
 
         float intersectionPoint = shape->intersect(ray);
         if (intersectionPoint == __FLT_MIN__) continue;
@@ -154,11 +156,13 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
         // glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
         // float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir),0.0f);
 
-        std::shared_ptr<Shape> shape = m_ActiveScene->Shapes[payload.ShapeIndex];
-        std::shared_ptr<Material> material = m_ActiveScene->Materials[shape->MaterialIndex];
+        //TODO : FIX SHARED POINTER performance issue
 
-        contribution*= material->Albedo;
-        light += material->GetEmission();
+        Shape* shape = m_ActiveScene->Shapes[payload.ShapeIndex];
+        const Material& material = m_ActiveScene->Materials[shape->MaterialIndex];
+
+        contribution*= material.Albedo;
+        light += material.GetEmission();
 
         //glm::vec3 RoughnessVector = material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f);
         
@@ -180,7 +184,7 @@ Renderer::HitPayLoad Renderer::ClosestHit(const Ray& ray, float hitDistance, int
     payload.HitDistance = hitDistance;
     payload.ShapeIndex = shapeIndex;
 
-    auto closestShape = m_ActiveScene->Shapes[shapeIndex];
+    Shape* closestShape = m_ActiveScene->Shapes[shapeIndex];
 
     glm::vec3 origin = ray.Origin - closestShape->Position;
     payload.WorldPosition = origin + ray.Direction * hitDistance;

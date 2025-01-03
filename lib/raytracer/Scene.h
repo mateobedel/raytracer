@@ -12,6 +12,10 @@ class Material;
 class Scene {
 
 public:
-    std::vector<std::shared_ptr<Shape>> Shapes;
-    std::vector<std::shared_ptr<Material>> Materials;
+    std::vector<Shape*> Shapes;
+    std::vector<Material> Materials;
+
+    ~Scene() {
+        for (Shape* shape : Shapes) delete shape; 
+    }
 };

@@ -28,7 +28,7 @@ $(TARGET): $(OBJS)
 all: build
 
 # Compilation (debug)
-debug: CFLAGS += -D_DEBUG
+debug: CFLAGS += -D_DEBUG -g
 debug: $(TARGET)
 
 # Compilation (release)
@@ -41,7 +41,7 @@ run: $(TARGET)
 # Execution pour analyse des performances
 gprof-run: CFLAGS += -pg
 gprof-run: LDFLAGS += -pg
-gprof-run: clean $(TARGET)
+gprof-run: clean debug
 gprof-run:
 	@mkdir -p $(LOG_DIR)
 	GMON_OUT_PREFIX=$(LOG_DIR)/gmon ./bin/raytracer
@@ -51,6 +51,10 @@ gprof-log:
 	@mkdir -p $(LOG_DIR)
 	gprof $(TARGET) $(LOG_DIR)/gmon.* > $(LOG_DIR)/perf.log
 
+# Fuite de mémoire
+valgrind: debug
+	@mkdir -p $(LOG_DIR)
+	valgrind --leak-check=full $(TARGET)
 
 # Nettoyage
 clean:

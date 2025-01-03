@@ -20,24 +20,24 @@ public:
 	ExampleLayer()
 		: m_Camera(45.0f, 0.1f, 100.0f) {
 
-		auto pinkSphere = std::make_shared<Material>();
-		pinkSphere->Albedo = {1.0f, 0.0f, 1.0f};
-		pinkSphere->Roughness = 0.0f;
+		Material pinkSphere;
+		pinkSphere.Albedo = {1.0f, 0.0f, 1.0f};
+		pinkSphere.Roughness = 0.0f;
 		m_Scene.Materials.push_back(pinkSphere);
 		
-		auto blueSphere = std::make_shared<Material>();
-		blueSphere->Albedo = {0.0f, 0.0f, 1.0f};
-		blueSphere->Roughness = .1f;
+		Material blueSphere;
+		blueSphere.Albedo = {0.0f, 0.0f, 1.0f};
+		blueSphere.Roughness = .1f;
 		m_Scene.Materials.push_back(blueSphere);
 
 
-		auto sphere = std::make_shared<Sphere>();
+		Sphere* sphere = new Sphere();
 		sphere->Position = {.0f, .0f, .0f};
 		sphere->Radius = 1.0f;
 		sphere->MaterialIndex = 0;
 		m_Scene.Shapes.push_back(sphere);
 
-		auto sphere2 = std::make_shared<Sphere>();
+		Sphere* sphere2 = new Sphere();
 		sphere2->Position = {.0f, -201.0f, .0f};
 		sphere2->Radius = 200.0f;
 		sphere2->MaterialIndex = 1;
@@ -48,7 +48,6 @@ public:
 		if (m_Camera.OnUpdate(ts))
 			m_Renderer.ResetFrameIndex();
 	}
-
 
 	virtual void OnUIRender() override
 	{
@@ -115,12 +114,12 @@ private:
 		bool edited = false;
 
 		for(size_t i = 0; i < m_Scene.Shapes.size(); i++) 
-			edited |= m_Scene.Shapes[i].get()->RenderUiSettings(i, m_Scene);
+			edited |= m_Scene.Shapes[i]->RenderUiSettings(i, m_Scene);
 		
 		ImGui::Separator();
 
 		if (ImGui::Button("+",ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			auto sphere = std::make_shared<Sphere>();
+			Sphere* sphere = new Sphere();
 			m_Scene.Shapes.push_back(sphere);
 			edited = true;
 		}
@@ -135,19 +134,21 @@ private:
 		bool edited = false;
 		for(size_t i = 0; i < m_Scene.Materials.size(); i++) {
 			
-			m_Scene.Materials[i]->RenderUiSettings(i);
+			m_Scene.Materials[i].RenderUiSettings(i);
 		}
 
 		ImGui::Separator();
 
 		if (ImGui::Button("+",ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			auto mat = std::make_shared<Material>();
+			Material mat;
 			m_Scene.Materials.push_back(mat);
 		}
 
 		ImGui::End();
 		return edited;
 	}
+
+
 
 	Renderer m_Renderer;
 	Camera m_Camera;
@@ -169,8 +170,9 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv) {
 
 		if (ImGui::BeginMenu("File")) {
 
-			if (ImGui::MenuItem("Exit")) 
+			if (ImGui::MenuItem("Exit")) {
 				app->Close();
+			}
 			
 			ImGui::EndMenu();
 		}

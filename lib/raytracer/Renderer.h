@@ -26,6 +26,11 @@ public:
     void ResetFrameIndex() { m_FrameIndex = 1;};
     Settings& GetSettings(){return m_Settings;}
 
+    ~Renderer() {
+        delete[] m_AccumulationData;
+        delete[] m_ImageData;
+    }
+
 private:
 
     struct HitPayLoad {
