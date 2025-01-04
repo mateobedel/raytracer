@@ -15,7 +15,9 @@ public:
     Sphere() {};
     Sphere(glm::vec3 p, int i, float r) : Shape(p,i), Radius(r) {};
 
-    virtual float intersect(const Ray& ray) const;
+    virtual bool intersect(const Ray& ray, float& intersectT) const;
+    virtual HitPayLoad ClosestHit(const Ray& ray, float hitDistance);
+
     bool RenderUiSettings(int index, Scene& scene) override;
 
 public:

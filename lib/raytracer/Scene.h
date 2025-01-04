@@ -4,7 +4,6 @@
 #include <vector>
 #include "raytracer/Shape.h"
 #include "raytracer/Material.h"
-#include <memory>
 
 class Shape;
 class Material;

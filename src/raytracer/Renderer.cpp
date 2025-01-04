@@ -71,9 +71,6 @@ void Renderer::Render(const Scene& scene, const Camera& camera) {
     if(m_FrameIndex == 1) 
         memset(m_AccumulationData, 0, m_FinalImage->GetWidth() * m_FinalImage->GetHeight() * sizeof(glm::vec4));
 
-
-
-
     std::for_each(std::execution::par, m_ImageVerticalIterator.begin(), m_ImageVerticalIterator.end(), [this](uint32_t y) {
         std::for_each(std::execution::par, m_ImageHorizontalIterator.begin(), m_ImageHorizontalIterator.end(), [this, y](uint32_t x) {
 
@@ -88,9 +85,6 @@ void Renderer::Render(const Scene& scene, const Camera& camera) {
         });
     });
 
-
-            
-
     m_FinalImage->SetData(m_ImageData);
 
     if (m_Settings.Accumulate)
@@ -100,28 +94,28 @@ void Renderer::Render(const Scene& scene, const Camera& camera) {
 
 }
 
-Renderer::HitPayLoad Renderer::TraceRay(const Ray& ray) {
+HitPayLoad Renderer::TraceRay(const Ray& ray) {
 
-    int closestSphere = -1;
+    Shape* closestShape = nullptr;
     float hitDistance = std::numeric_limits<float>::max();
 
     for(size_t i = 0; i < m_ActiveScene->Shapes.size(); i++) {
 
         Shape* shape = m_ActiveScene->Shapes[i];
 
-        float intersectionPoint = shape->intersect(ray);
-        if (intersectionPoint == __FLT_MIN__) continue;
+        float intersectionT;
+        bool doesIntersect = shape->intersect(ray, intersectionT);
 
-        if (intersectionPoint > 0.0f && intersectionPoint < hitDistance) {
-            closestSphere = (int)i;
-            hitDistance = intersectionPoint;
+        if (!doesIntersect) continue;
+
+        if (intersectionT < hitDistance) {
+            closestShape = m_ActiveScene->Shapes[i];
+            hitDistance = intersectionT;
         }
     }
 
-    if (closestSphere < 0)
-        return Miss(ray);
-
-    return ClosestHit(ray, hitDistance, closestSphere);
+    if (closestShape == nullptr) return closestShape->Miss(ray);
+    return closestShape->ClosestHit(ray, hitDistance);
 
 }
 
@@ -144,7 +138,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
 
         seed += i;
 
-        Renderer::HitPayLoad payload = TraceRay(ray);
+        HitPayLoad payload = TraceRay(ray);
         
         if (payload.HitDistance < 0.0f) {
 
@@ -156,10 +150,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
         // glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
         // float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir),0.0f);
 
-        //TODO : FIX SHARED POINTER performance issue
-
-        Shape* shape = m_ActiveScene->Shapes[payload.ShapeIndex];
-        const Material& material = m_ActiveScene->Materials[shape->MaterialIndex];
+        const Material& material = m_ActiveScene->Materials[payload.HitShape->MaterialIndex];
 
         contribution*= material.Albedo;
         light += material.GetEmission();
@@ -177,27 +168,3 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
     return glm::vec4(light, 1.0f);
 }
  
-
-Renderer::HitPayLoad Renderer::ClosestHit(const Ray& ray, float hitDistance, int shapeIndex) {
-
-    Renderer::HitPayLoad payload;
-    payload.HitDistance = hitDistance;
-    payload.ShapeIndex = shapeIndex;
-
-    Shape* closestShape = m_ActiveScene->Shapes[shapeIndex];
-
-    glm::vec3 origin = ray.Origin - closestShape->Position;
-    payload.WorldPosition = origin + ray.Direction * hitDistance;
-    payload.WorldNormal = glm::normalize(payload.WorldPosition);
-    payload.WorldPosition += closestShape->Position;
-
-    return payload;
-
-}
-
-Renderer::HitPayLoad Renderer::Miss(const Ray& ray) {
-    Renderer::HitPayLoad payload;
-    payload.HitDistance = -1;
-    return payload;
-
-}

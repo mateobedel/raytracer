@@ -8,6 +8,7 @@
 
 #include "raytracer/Renderer.h"
 #include "raytracer/Sphere.h"
+#include "raytracer/Triangle.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -119,7 +120,7 @@ private:
 		ImGui::Separator();
 
 		if (ImGui::Button("+",ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			Sphere* sphere = new Sphere();
+			Triangle* sphere = new Triangle();
 			m_Scene.Shapes.push_back(sphere);
 			edited = true;
 		}
@@ -132,11 +133,9 @@ private:
 
 		ImGui::Begin(ICON_FK_ADJUST " Materials");
 		bool edited = false;
-		for(size_t i = 0; i < m_Scene.Materials.size(); i++) {
-			
-			m_Scene.Materials[i].RenderUiSettings(i);
-		}
-
+		for(size_t i = 0; i < m_Scene.Materials.size(); i++) 
+			edited |= m_Scene.Materials[i].RenderUiSettings(i);
+		
 		ImGui::Separator();
 
 		if (ImGui::Button("+",ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
@@ -147,8 +146,6 @@ private:
 		ImGui::End();
 		return edited;
 	}
-
-
 
 	Renderer m_Renderer;
 	Camera m_Camera;

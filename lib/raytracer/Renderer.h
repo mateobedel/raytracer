@@ -4,8 +4,8 @@
 #include "Walnut/Camera.h"
 #include "raytracer/Ray.h"
 #include "Scene.h"
-
 #include <memory>
+
 #include <glm/glm.hpp>
 
  
@@ -33,19 +33,8 @@ public:
 
 private:
 
-    struct HitPayLoad {
-        float HitDistance;
-        glm::vec3 WorldPosition;
-        glm::vec3 WorldNormal;
-
-        int ShapeIndex;
-
-    };
-
     glm::vec4 PerPixel(uint32_t x, uint32_t y); //Raygen
     HitPayLoad TraceRay(const Ray& ray);
-    HitPayLoad ClosestHit(const Ray& ray, float hitDistance, int shapeIndex);
-    HitPayLoad Miss(const Ray& ray);
 
     const Scene* m_ActiveScene = nullptr;
     const Camera* m_ActiveCamera = nullptr;

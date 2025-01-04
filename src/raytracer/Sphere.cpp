@@ -4,9 +4,10 @@
 #include "font/forkawesome.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "imgui/imgui.h"
 #include <string>
 
-float Sphere::intersect(const Ray &ray) const {
+bool Sphere::intersect(const Ray &ray, float& intersectT) const {
 
     glm::vec3 origin = ray.Origin - Position;
 
@@ -17,10 +18,27 @@ float Sphere::intersect(const Ray &ray) const {
     float delta = b*b - 4.0f * a * c;
 
     if (delta < 0.0f)
-        return __FLT_MIN__;
+        return false;
 
-    float closestT = (-b - glm::sqrt(delta)) / (2.0f * a); //Smaller solution
-    return closestT;
+    float t = (-b - glm::sqrt(delta)) / (2.0f * a);
+    if (t < 0.0f) return false; //behind the ray
+
+    intersectT = t; 
+    return true;
+}
+
+HitPayLoad Sphere::ClosestHit(const Ray& ray, float hitDistance) {
+    
+    HitPayLoad payload;
+    payload.HitDistance = hitDistance;
+
+    glm::vec3 origin = ray.Origin - Position;
+    payload.WorldPosition = origin + ray.Direction * hitDistance;
+    payload.WorldNormal = glm::normalize(payload.WorldPosition);
+    payload.WorldPosition += Position;
+    payload.HitShape = this;
+
+    return payload;
 }
 
 bool Sphere::RenderUiSettings(int index, Scene& scene) {
@@ -36,21 +54,7 @@ bool Sphere::RenderUiSettings(int index, Scene& scene) {
         edited |= ImGui::DragFloat3(ICON_FK_ARROWS " Position", glm::value_ptr(Position), .01f);
 	    edited |= ImGui::DragFloat(ICON_FK_EXPAND " Radius", &Radius, .01f);
 
-        const Material& mat = scene.Materials[MaterialIndex];
-
-        ImGui::ColorButton("##xx",ImVec4(mat.Albedo.r, mat.Albedo.g, mat.Albedo.b, 1.0f),ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoPicker,ImVec2(20, 20));
-        ImGui::SameLine(); 
-
-        std::vector<const char*> materialNames;
-        for (int i = 0; i < scene.Materials.size(); ++i) {
-            char* name = new char[32]; 
-            snprintf(name, 32, "Material  %d", i);
-            materialNames.push_back(name);
-        }
-        ImGui::SetNextItemWidth(ImGui::CalcItemWidth() - (20.0f+ImGui::GetStyle().ItemSpacing.x));
-        edited |= ImGui::Combo(ICON_FK_ADJUST " Material", &MaterialIndex, materialNames.data(), materialNames.size());
-
-        for (auto name : materialNames) delete[] name;
+        edited |= RenderUiMaterial(scene);
 
         ImGui::TreePop();
     }
