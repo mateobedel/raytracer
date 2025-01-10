@@ -14,8 +14,8 @@
  bool Triangle::intersect(const Ray& ray, float& intersectT) const {
 
     //Back Face Culling
-    if (glm::dot(ray.Direction, Normal) > 0)
-        return false; 
+    // if (glm::dot(ray.Direction, Normal) > 0)
+    //     return false; 
 
     //Parallel
     float normalDirectionDot = dot(ray.Direction, Normal);
