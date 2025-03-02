@@ -3,8 +3,11 @@
 #include "font/forkawesome.h"
 #include <string>
 #include "raytracer/Scene.h"
+#include <algorithm>
 
 
+Shape::Shape() {}
+Shape::Shape(glm::vec3 pos, int i) : Position(pos), MaterialIndex(i) {}
 
 bool Shape::RenderUiMaterial(Scene& scene) {
 
@@ -28,3 +31,28 @@ bool Shape::RenderUiMaterial(Scene& scene) {
 
         return edited;
     }
+
+bool Shape::RenderDeleteButton(int index, Scene& scene) {
+
+    bool edited = false;
+    
+       float buttonWidth = 50.0f;
+       ImGui::SameLine(ImGui::GetContentRegionMax().x - buttonWidth);
+       ImGui::PushID(index);
+   
+       if (ImGui::Button(ICON_FK_TRASH, ImVec2(buttonWidth, 0))) {
+            scene.Shapes.erase(
+                std::remove_if(scene.Shapes.begin(), scene.Shapes.end(),
+                [this](Shape* shapePtr) {return shapePtr == this;}),
+                scene.Shapes.end()
+        );
+        edited = true;
+       }
+       
+       ImGui::PopID();
+       return edited;
+}
+
+void Shape::Miss(const Ray& ray, HitPayLoad& payload) { 
+    payload.HitDistance = -1.0f;
+}

@@ -5,6 +5,7 @@
 #include "Walnut/Camera.h"
 #include "Walnut/Input.h"
 #include "font/forkawesome.h"
+#include "happly/happly.h"
 
 #include "raytracer/Renderer.h"
 #include "raytracer/Sphere.h"
@@ -43,6 +44,23 @@ public:
 		sphere2->Radius = 200.0f;
 		sphere2->MaterialIndex = 1;
 		m_Scene.Shapes.push_back(sphere2);
+
+		// happly::PLYData testPly("ply/cube.ply");
+		// std::vector<std::array<double, 3>> vertexPositions = testPly.getVertexPositions();
+		// std::vector<std::vector<size_t>> faceIndices = testPly.getFaceIndices<size_t>();
+
+		// for (const auto& face : faceIndices) {
+			
+		// 	Vertex v0 { glm::vec3(vertexPositions[face[0]][0], vertexPositions[face[0]][1], vertexPositions[face[0]][2]), glm::vec3(0.0f) };
+		// 	Vertex v1 { glm::vec3(vertexPositions[face[1]][0], vertexPositions[face[1]][1], vertexPositions[face[1]][2]), glm::vec3(0.0f) };
+		// 	Vertex v2 { glm::vec3(vertexPositions[face[2]][0], vertexPositions[face[2]][1], vertexPositions[face[2]][2]), glm::vec3(0.0f) };
+			
+		// 	Triangle* triangle = new Triangle(v0, v1, v2);
+		// 	m_Scene.Shapes.push_back(triangle);
+		// }
+
+		m_Scene.bvh.BuildBVH(m_Scene.Shapes);
+
 	}
 
 	virtual void OnUpdate(float ts) override {
@@ -68,7 +86,10 @@ public:
 		ImGui::End();
 
 		//Tabs
-        if (ObjectTabRender()) m_Renderer.ResetFrameIndex();
+        if (ObjectTabRender()) {
+			m_Renderer.ResetFrameIndex();
+			m_Scene.bvh.BuildBVH(m_Scene.Shapes);
+		}
 		if (MaterialTabRender()) m_Renderer.ResetFrameIndex();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(.0f, .0f));
@@ -113,17 +134,33 @@ private:
 		ImGui::Begin(ICON_FK_CUBES " Scene");
 
 		bool edited = false;
-
-		for(size_t i = 0; i < m_Scene.Shapes.size(); i++) 
+		for (size_t i = 0; i < m_Scene.Shapes.size(); i++) 
 			edited |= m_Scene.Shapes[i]->RenderUiSettings(i, m_Scene);
+		
 		
 		ImGui::Separator();
 
-		if (ImGui::Button("+",ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			Triangle* sphere = new Triangle();
-			m_Scene.Shapes.push_back(sphere);
+		//Selection de l'objet à ajouter
+		static int currentObjectIndex = 0;
+		static const char optionsString[] =
+			ICON_FK_PLAY " Triangle\0"
+			ICON_FK_CIRCLE_O " Sphere\0"  
+        	"\0"; 
+
+		ImGui::Combo("##", &currentObjectIndex, optionsString);
+
+		//Ajout de l'objet
+		ImGui::SameLine();
+		if (ImGui::Button("Add",ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+			Shape* shape;
+			switch(currentObjectIndex) {
+				case 0: shape = new Triangle(); break;
+				case 1: shape = new Sphere(); break;
+			}
+			m_Scene.Shapes.push_back(shape);
 			edited = true;
 		}
+	
 
 		ImGui::End();
 		return edited;

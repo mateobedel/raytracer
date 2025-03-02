@@ -94,29 +94,21 @@ void Renderer::Render(const Scene& scene, const Camera& camera) {
 
 }
 
+
 HitPayLoad Renderer::TraceRay(const Ray& ray) {
 
-    Shape* closestShape = nullptr;
-    float hitDistance = std::numeric_limits<float>::max();
+    HitPayLoad payload;
+    payload.HitDistance = std::numeric_limits<float>::max();
+    payload.HitShape = nullptr;
 
-    for(size_t i = 0; i < m_ActiveScene->Shapes.size(); i++) {
+    m_ActiveScene->bvh.Intersect(ray, m_ActiveScene->Shapes, payload);
 
-        Shape* shape = m_ActiveScene->Shapes[i];
+    if (!payload.HitShape) 
+        payload.HitShape->Miss(ray, payload);
+    else 
+        payload.HitShape->ClosestHit(ray, payload);
 
-        float intersectionT;
-        bool doesIntersect = shape->intersect(ray, intersectionT);
-
-        if (!doesIntersect) continue;
-
-        if (intersectionT < hitDistance) {
-            closestShape = m_ActiveScene->Shapes[i];
-            hitDistance = intersectionT;
-        }
-    }
-
-    if (closestShape == nullptr) return closestShape->Miss(ray);
-    return closestShape->ClosestHit(ray, hitDistance);
-
+    return payload;
 }
 
 
@@ -152,7 +144,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y) {
 
         const Material& material = m_ActiveScene->Materials[payload.HitShape->MaterialIndex];
 
-        contribution*= material.Albedo;
+        contribution *= material.Albedo;
         light += material.GetEmission();
 
         //glm::vec3 RoughnessVector = material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f);

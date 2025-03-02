@@ -10,12 +10,49 @@
 #include "raytracer/Sphere.h"
 
 
+Triangle::Triangle() {
+    Vertex V0 = {.Position = glm::vec3(-1,0,0)};
+    Vertex V1 = {.Position = glm::vec3(1,0,0)};
+    Vertex V2 = {.Position = glm::vec3(0,2,0)};
+
+    V[0] = V0; V[1] = V1; V[2] = V2;
+    onVertexChange();
+}
+
+
+Triangle::Triangle(Vertex V0, Vertex V1, Vertex V2) {
+    V[0] = V0; V[1] = V1; V[2] = V2;
+    E[0] = V1.Position - V0.Position; E[1] = V2.Position - V0.Position; E[2] = V2.Position - V1.Position;
+
+    Normal = glm::normalize(glm::cross(E[0], E[1])); 
+    Position = (V[0].Position + V[1].Position + V[2].Position)*0.3333f;
+    dPlane = - glm::dot(Normal, V[0].Position);
+}
+
+void Triangle::onVertexChange() {
+    Position = (V[0].Position + V[1].Position + V[2].Position)*0.3333f;
+    E[0] = V[1].Position - V[0].Position; E[1] = V[2].Position - V[0].Position; E[2] = V[2].Position - V[1].Position;
+    Normal = glm::normalize(glm::cross(E[0], E[1])); 
+    dPlane = - glm::dot(Normal, V[0].Position);
+}
+
+
+glm::vec3 Triangle::GetAABBMin() const {
+    return glm::min(glm::min(V[0].Position, V[1].Position), V[2].Position);
+}
+
+glm::vec3 Triangle::GetAABBMax() const {
+    return glm::max(glm::max(V[0].Position, V[1].Position), V[2].Position);
+}
+
+
 
  bool Triangle::intersect(const Ray& ray, float& intersectT) const {
 
     //Back Face Culling
     // if (glm::dot(ray.Direction, Normal) > 0)
     //     return false; 
+
 
     //Parallel
     float normalDirectionDot = dot(ray.Direction, Normal);
@@ -42,25 +79,18 @@
     if (glm::dot(Normal, glm::cross(E[2], intersectionPoint - V[1].Position)) < 0) 
         return false; 
 
-
-
     intersectT = intersectPlaneT;
+
+    
     return true;
  }
 
- HitPayLoad Triangle::ClosestHit(const Ray& ray, float hitDistance) {
-
-    HitPayLoad payload;
-    payload.HitDistance = hitDistance;
+ void Triangle::ClosestHit(const Ray& ray, HitPayLoad& payload) {
 
     glm::vec3 origin = ray.Origin;
-    payload.WorldPosition = origin + ray.Direction * hitDistance;
+    payload.WorldPosition = origin + ray.Direction * payload.HitDistance;
     payload.WorldNormal = Normal;
-    payload.HitShape = this;
-
-    return payload;
 }
-
 
 bool Triangle::RenderUiSettings(int index, Scene& scene) {
 
@@ -69,8 +99,11 @@ bool Triangle::RenderUiSettings(int index, Scene& scene) {
     ImGui::PushID(index);
 
     std::string objectName = ICON_FK_PLAY " Triangle " + std::to_string(index);
+    bool isOpen = ImGui::TreeNode(objectName.c_str());
 
-    if (ImGui::TreeNode(objectName.c_str())) {
+    edited |= RenderDeleteButton(index, scene);
+
+    if (isOpen) {
 
         glm::vec3 NewPosition = Position;
         

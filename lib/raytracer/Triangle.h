@@ -13,33 +13,16 @@ public:
 class Triangle : public Shape {
 
 public:
-    Triangle() {
-        Vertex V0 = {.Position = glm::vec3(-1,0,0)};
-        Vertex V1 = {.Position = glm::vec3(1,0,0)};
-        Vertex V2 = {.Position = glm::vec3(0,2,0)};
+    Triangle();
+    Triangle(Vertex V0, Vertex V1, Vertex V2);
 
-        V[0] = V0; V[1] = V1; V[2] = V2;
-        onVertexChange();
-    }
-
-
-    Triangle(Vertex V0, Vertex V1, Vertex V2) {
-        V[0] = V0; V[1] = V1; V[2] = V2;
-        E[0] = V1.Position - V0.Position; E[1] = V2.Position - V0.Position; E[2] = V2.Position - V1.Position;
+    glm::vec3 GetAABBMin() const override;
+    glm::vec3 GetAABBMax() const override;
     
-        Normal = glm::normalize(glm::cross(E[0], E[1])); 
-        dPlane = - glm::dot(Normal, V[0].Position);
-    }
-
     virtual bool intersect(const Ray& ray, float& intersectT) const;
-    virtual HitPayLoad ClosestHit(const Ray& ray, float hitDistance);
+    virtual void ClosestHit(const Ray& ray, HitPayLoad& payload);
     bool RenderUiSettings(int index, Scene& scene) override;
-
-    void onVertexChange() {
-        E[0] = V[1].Position - V[0].Position; E[1] = V[2].Position - V[0].Position; E[2] = V[2].Position - V[1].Position;
-        Normal = glm::normalize(glm::cross(E[0], E[1])); 
-        dPlane = - glm::dot(Normal, V[0].Position);
-    }
+    void onVertexChange();
     
 
 public:

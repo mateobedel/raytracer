@@ -7,6 +7,19 @@
 #include "imgui/imgui.h"
 #include <string>
 
+
+Sphere::Sphere() {}
+
+Sphere::Sphere(glm::vec3 p, int i, float r) : Shape(p,i), Radius(r) {}
+
+glm::vec3 Sphere::GetAABBMin() const {
+    return Position - glm::vec3(Radius);
+}
+
+glm::vec3 Sphere::GetAABBMax() const {
+    return Position + glm::vec3(Radius);
+}
+
 bool Sphere::intersect(const Ray &ray, float& intersectT) const {
 
     glm::vec3 origin = ray.Origin - Position;
@@ -27,18 +40,12 @@ bool Sphere::intersect(const Ray &ray, float& intersectT) const {
     return true;
 }
 
-HitPayLoad Sphere::ClosestHit(const Ray& ray, float hitDistance) {
-    
-    HitPayLoad payload;
-    payload.HitDistance = hitDistance;
+void Sphere::ClosestHit(const Ray& ray, HitPayLoad& payload) {
 
     glm::vec3 origin = ray.Origin - Position;
-    payload.WorldPosition = origin + ray.Direction * hitDistance;
+    payload.WorldPosition = origin + ray.Direction * payload.HitDistance;
     payload.WorldNormal = glm::normalize(payload.WorldPosition);
     payload.WorldPosition += Position;
-    payload.HitShape = this;
-
-    return payload;
 }
 
 bool Sphere::RenderUiSettings(int index, Scene& scene) {
@@ -48,8 +55,11 @@ bool Sphere::RenderUiSettings(int index, Scene& scene) {
     ImGui::PushID(index);
 
     std::string objectName = ICON_FK_CIRCLE_O " Sphere " + std::to_string(index);
+    bool isOpen = ImGui::TreeNode(objectName.c_str());
 
-    if (ImGui::TreeNode(objectName.c_str())) {
+    edited |= RenderDeleteButton(index, scene);
+
+    if (isOpen) {
 
         edited |= ImGui::DragFloat3(ICON_FK_ARROWS " Position", glm::value_ptr(Position), .01f);
 	    edited |= ImGui::DragFloat(ICON_FK_EXPAND " Radius", &Radius, .01f);

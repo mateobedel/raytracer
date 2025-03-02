@@ -12,11 +12,14 @@ class Sphere : public Shape {
 
 public:
 
-    Sphere() {};
-    Sphere(glm::vec3 p, int i, float r) : Shape(p,i), Radius(r) {};
+    Sphere();
+    Sphere(glm::vec3 p, int i, float r);
+
+    glm::vec3 GetAABBMin() const override;
+    glm::vec3 GetAABBMax() const override;
 
     virtual bool intersect(const Ray& ray, float& intersectT) const;
-    virtual HitPayLoad ClosestHit(const Ray& ray, float hitDistance);
+    virtual void ClosestHit(const Ray& ray, HitPayLoad& payload);
 
     bool RenderUiSettings(int index, Scene& scene) override;
 
