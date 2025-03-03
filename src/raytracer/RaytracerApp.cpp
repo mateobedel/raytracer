@@ -45,21 +45,22 @@ public:
 		sphere2->MaterialIndex = 1;
 		m_Scene.Shapes.push_back(sphere2);
 
-		// happly::PLYData testPly("ply/cube.ply");
-		// std::vector<std::array<double, 3>> vertexPositions = testPly.getVertexPositions();
-		// std::vector<std::vector<size_t>> faceIndices = testPly.getFaceIndices<size_t>();
+		happly::PLYData testPly("ply/monkey.ply");
+		std::vector<std::array<double, 3>> vertexPositions = testPly.getVertexPositions();
+		std::vector<std::vector<size_t>> faceIndices = testPly.getFaceIndices<size_t>();
 
-		// for (const auto& face : faceIndices) {
+		for (const auto& face : faceIndices) {
 			
-		// 	Vertex v0 { glm::vec3(vertexPositions[face[0]][0], vertexPositions[face[0]][1], vertexPositions[face[0]][2]), glm::vec3(0.0f) };
-		// 	Vertex v1 { glm::vec3(vertexPositions[face[1]][0], vertexPositions[face[1]][1], vertexPositions[face[1]][2]), glm::vec3(0.0f) };
-		// 	Vertex v2 { glm::vec3(vertexPositions[face[2]][0], vertexPositions[face[2]][1], vertexPositions[face[2]][2]), glm::vec3(0.0f) };
-			
-		// 	Triangle* triangle = new Triangle(v0, v1, v2);
-		// 	m_Scene.Shapes.push_back(triangle);
-		// }
+			Vertex v0 { glm::vec3(vertexPositions[face[0]][0], vertexPositions[face[0]][1], vertexPositions[face[0]][2]), glm::vec3(0.0f) };
+			Vertex v1 { glm::vec3(vertexPositions[face[1]][0], vertexPositions[face[1]][1], vertexPositions[face[1]][2]), glm::vec3(0.0f) };
+			Vertex v2 { glm::vec3(vertexPositions[face[2]][0], vertexPositions[face[2]][1], vertexPositions[face[2]][2]), glm::vec3(0.0f) };
+			Triangle* triangle = new Triangle(v0, v1, v2);
+			m_Scene.Shapes.push_back(triangle);
+		}
 
+		printf("File read\n");
 		m_Scene.bvh.BuildBVH(m_Scene.Shapes);
+		printf("BVHTree built\n");
 
 	}
 
@@ -88,7 +89,7 @@ public:
 		//Tabs
         if (ObjectTabRender()) {
 			m_Renderer.ResetFrameIndex();
-			m_Scene.bvh.BuildBVH(m_Scene.Shapes);
+			m_Scene.bvh.BuildBVH(m_Scene.Shapes); //TODO : fix
 		}
 		if (MaterialTabRender()) m_Renderer.ResetFrameIndex();
 

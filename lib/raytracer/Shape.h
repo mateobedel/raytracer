@@ -25,6 +25,7 @@ class Shape {
 
         virtual glm::vec3 GetAABBMin() const = 0;
         virtual glm::vec3 GetAABBMax() const = 0;
+        
 
 
     public:
