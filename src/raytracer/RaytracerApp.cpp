@@ -45,7 +45,7 @@ public:
 		sphere2->MaterialIndex = 1;
 		m_Scene.Shapes.push_back(sphere2);
 
-		happly::PLYData testPly("ply/monkey.ply");
+		happly::PLYData testPly("ply/bunny.ply");
 		std::vector<std::array<double, 3>> vertexPositions = testPly.getVertexPositions();
 		std::vector<std::vector<size_t>> faceIndices = testPly.getFaceIndices<size_t>();
 

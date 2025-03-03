@@ -5,6 +5,10 @@
 
 #include "Shape.h"
 
+
+#define BINS 100
+
+
 //Node of a BVH Tree
 struct BVHNode {
     glm::vec3 aabbMin, aabbMax;
@@ -13,14 +17,22 @@ struct BVHNode {
                     // else :              contains the index of the first shape index         
 };
 
+
 //Axis-Aligned Bounding Box
 struct AABB { 
 
-    glm::vec3 bmin{FLT_MAX}, bmax{FLT_MIN};
+    glm::vec3 bmin{FLT_MAX}, bmax{-FLT_MAX};
 
     void grow(glm::vec3 p) {
         bmin = glm::min(bmin, p);
         bmax = glm::max(bmax, p); 
+    }
+
+    void grow(AABB& b) {
+        if (b.bmin.x != FLT_MAX) {
+            grow(b.bmin);
+            grow(b.bmax);
+        }
     }
 
     float area() { 
@@ -28,6 +40,13 @@ struct AABB {
         return e.x*e.y + e.y*e.z + e.z*e.x; 
     }
 };
+
+//Bounds of subdivised intervals 
+struct Bin { 
+    AABB bounds;
+    int nbShape = 0; 
+};
+
 
 class BVHTree {
 
@@ -43,6 +62,10 @@ class BVHTree {
     private:
 
         void UpdateNodeBounds(uint nodeId, const std::vector<Shape*>& shapes);
+
+        float FindBestSplitPlane(BVHNode& node, int& axis, float& splitPos, const std::vector<Shape*>& shapes);
+
+        float CalcNodeCost(BVHNode& node);
 
         void Subdivide(int nodeId, const std::vector<Shape*>& shapes);
 
